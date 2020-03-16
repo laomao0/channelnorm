@@ -1,0 +1,11 @@
+# three packages for channelnorm
+
+1. channelnorm_at
+   AT API
+   for pytorch >= 1.0.0
+2. channelnorm_cupy
+   cupy6.0 
+   we test it using pytorch==1.3.0
+3. channelnorm_th
+   THC API
+   for pytorch 0.4
