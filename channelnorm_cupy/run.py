@@ -16,12 +16,20 @@ net = net.cuda()
 
 for i in range(1):
 
-	input1 = torch.rand(2, 1, 8, 8).cuda()
+	input1 = torch.rand(1, 2, 8, 8).cuda()
 
 	input1 = input1.requires_grad_()
 
 
 	output = net(input1)
+
+	# print(input1)
+
+	# print(output)
+
+	expected =  torch.sqrt(input1[:,0,...]**2 + input1[:,1,...]**2)
+
+	print((output.data - expected.data).abs().sum(), '<-- should be 0.0')
 
 	print(torch.autograd.gradcheck(net, tuple([ input1 ]), 1e-3), '<-- should be true')
 

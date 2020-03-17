@@ -35,21 +35,31 @@ kernel_ChannelNorm_updateOutput = '''
 
         int index = blockIdx.x * blockDim.x + threadIdx.x;
 
+
         if (index >= n) {
             return;
         }
+
+        // notice the index is based on output
 
         int dim_b = output_size_b;
         int dim_c = output_size_c;
         int dim_h = output_size_h;
         int dim_w = output_size_w;
 
+        if (dim_c != 1){
+            printf("output channel dim error");
+        }
+
+        // b stride of output
         int dim_chw = dim_c * dim_h * dim_w;
 
+        // index of output
         int b = ( index / dim_chw ) % dim_b;
         int y = ( index / dim_w )   % dim_h;
         int x = ( index          )  % dim_w;
 
+        // dim and stride of input
         int i1dim_c = input1_size_c;
         int i1dim_h = input1_size_h;
         int i1dim_w = input1_size_w;
@@ -58,6 +68,8 @@ kernel_ChannelNorm_updateOutput = '''
 
         float result = 0.0;
 
+        // the channel of output is 1
+        // iteration for each channel of input
         for (int c = 0; c < i1dim_c; ++c) {
             int i1Index = b * i1dim_chw + c * i1dim_hw + y * i1dim_w + x;
             float val = input1[i1Index];
@@ -65,6 +77,14 @@ kernel_ChannelNorm_updateOutput = '''
         }
         result = sqrt(result);
         output[index] = static_cast<float>(result);
+
+        /*
+        if (index == n-1) {
+            printf("index %d ", index);
+            printf("myindex %d ", b * i1dim_hw + y * i1dim_w + x);
+        }
+        */
+
     }
 '''
 
@@ -128,6 +148,11 @@ kernel_ChannelNorm_backward_input1 = '''
 
         float val = 0.0;
 
+        // it based on the index of gradInput
+        // notice gradInput has the same shape with Input
+        // Input  B C H W
+        // Output B 1 H W
+
         int dim_b = gradInput_size_b;
         int dim_c = gradInput_size_c;
         int dim_h = gradInput_size_h;
@@ -139,7 +164,7 @@ kernel_ChannelNorm_backward_input1 = '''
         int y = ( index / dim_w )   % dim_h;
         int x = ( index          )  % dim_w;
 
-
+        // get the index of output
         int outIndex = b * dim_hw + y * dim_w + x;
         val = static_cast<float>(gradOutput[outIndex]) * static_cast<float>(input1[index]) / (static_cast<float>(output[outIndex])+1e-9);
         gradInput[index] = static_cast<float>(val);
